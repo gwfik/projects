@@ -1,0 +1,24 @@
+
+function main(workbook: ExcelScript.Workbook) {
+    let arkusz = workbook.getActiveWorksheet();
+    let zakres = arkusz.getUsedRange();
+    let ileWierszy = zakres.getRowCount();
+
+    //przygotowanie tabeli
+    arkusz.getRange("I:M").delete(ExcelScript.DeleteShiftDirection.left);
+    arkusz.getRange("F:G").delete(ExcelScript.DeleteShiftDirection.left);
+    arkusz.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+    arkusz.getRange("E:F").insert(ExcelScript.InsertShiftDirection.right);
+
+
+    arkusz.getRange("E1").setValue("Quantity");
+    arkusz.getRange("F1").setValue("Cost");
+
+    let rangeQuantity = arkusz.getRange("E2").getResizedRange(ileWierszy - 2, 0);
+    rangeQuantity.setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!K:K)');
+    
+    let rangeCost = arkusz.getRange("F2").getResizedRange(ileWierszy - 2, 0);
+    rangeCost.setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!K:K)');
+
+    arkusz.getRange("G:G").getFormat().getFill().setColor("yellow");
+}
