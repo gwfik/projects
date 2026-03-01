@@ -1,24 +1,39 @@
-
 function main(workbook: ExcelScript.Workbook) {
-    let arkusz = workbook.getActiveWorksheet();
-    let zakres = arkusz.getUsedRange();
-    let ileWierszy = zakres.getRowCount();
+    let arkuszWazenie = workbook.getWorksheet("ważenie");
+    let zakresWazenie = arkuszWazenie.getUsedRange();
+    let ileWierszy = zakresWazenie.getRowCount();
+    let arkuszWynik = workbook.getWorksheet("wynik") || workbook.addWorksheet("wynik");
 
-    //przygotowanie tabeli
-    arkusz.getRange("I:M").delete(ExcelScript.DeleteShiftDirection.left);
-    arkusz.getRange("F:G").delete(ExcelScript.DeleteShiftDirection.left);
-    arkusz.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
-    arkusz.getRange("E:F").insert(ExcelScript.InsertShiftDirection.right);
+    arkuszWynik.getRange("A1").copyFrom(zakresWazenie, ExcelScript.RangeCopyType.all);
 
+    arkuszWynik.getRange("I:L").delete(ExcelScript.DeleteShiftDirection.left);
+    arkuszWynik.getRange("F:H").delete(ExcelScript.DeleteShiftDirection.left);
+    arkuszWynik.getRange("C:C").delete(ExcelScript.DeleteShiftDirection.left);
+    arkuszWynik.getRange("E:F").insert(ExcelScript.InsertShiftDirection.right);
+    arkuszWynik.getRange("C:C").insert(ExcelScript.InsertShiftDirection.right);
 
-    arkusz.getRange("E1").setValue("Quantity");
-    arkusz.getRange("F1").setValue("Cost");
+    arkuszWynik.getRange("C1").setValue("Customer_Segment");
+    arkuszWynik.getRange("E1").setValue("Quantity");
+    arkuszWynik.getRange("F1").setValue("Cost");
 
-    let rangeQuantity = arkusz.getRange("E2").getResizedRange(ileWierszy - 2, 0);
-    rangeQuantity.setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!K:K)');
-    
-    let rangeCost = arkusz.getRange("F2").getResizedRange(ileWierszy - 2, 0);
-    rangeCost.setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!K:K)');
+    arkuszWynik.getRange("C2").getResizedRange(ileWierszy - 2, 0).setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!F:F)');
+    arkuszWynik.getRange("E2").getResizedRange(ileWierszy - 2, 0).setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!K:K)');
+    arkuszWynik.getRange("F2").getResizedRange(ileWierszy - 2, 0).setFormulaLocal('=X.WYSZUKAJ(A2;data!A:A;data!L:L)');
 
-    arkusz.getRange("G:G").getFormat().getFill().setColor("yellow");
+    let calyZakres = arkuszWynik.getUsedRange();
+    calyZakres.setValues(calyZakres.getValues());
+    let dane = calyZakres.getValues();
+
+    for (let i = ileWierszy - 1; i >= 1; i--) {
+        let seg = String(dane[i][2]).trim();
+        let cat = String(dane[i][3]).trim();
+
+        if (!(seg === "Consumer" && cat === "Home & Kitchen")) {
+            //arkuszWynik.getRange((i + 1) + ":" + (i + 1)).getFormat().getFill().setColor("yellow");
+            arkuszWynik.getRange((i + 1) + ":" + (i + 1)).delete(ExcelScript.DeleteShiftDirection.up);
+        }
+    }
+
+    arkuszWynik.getUsedRange().getFormat().autofitColumns();
+    arkuszWynik.activate();
 }
